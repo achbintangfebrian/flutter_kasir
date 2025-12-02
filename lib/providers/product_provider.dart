@@ -1,81 +1,90 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 
 class ProductProvider with ChangeNotifier {
   List<Product> _products = [];
+  List<Product> _recommendations = [];
   bool _isLoading = false;
-  String _errorMessage = '';
+  String? _errorMessage;
 
   List<Product> get products => _products;
+  List<Product> get recommendations => _recommendations;
   bool get isLoading => _isLoading;
-  String get errorMessage => _errorMessage;
+  String? get errorMessage => _errorMessage;
 
-  // Fetch all products
+  ApiService _apiService = ApiService();
+
   Future<void> fetchProducts() async {
     _isLoading = true;
-    _errorMessage = '';
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      _products = await ApiService.getProducts();
+      _products = await _apiService.getProducts();
     } catch (error) {
-      _errorMessage = 'Failed to load products: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error fetching products: $error');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Add a new product
-  Future<bool> addProduct(Product product) async {
+  Future<Product> createProduct(Map<String, dynamic> productData) async {
     try {
-      final newProduct = await ApiService.createProduct(product);
-      if (newProduct != null) {
-        _products.add(newProduct);
-        notifyListeners();
-        return true;
-      }
+      final product = await _apiService.createProduct(productData);
+      _products.add(product);
+      notifyListeners();
+      return product;
     } catch (error) {
-      _errorMessage = 'Failed to add product: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error creating product: $error');
+      rethrow;
     }
-    return false;
   }
 
-  // Update an existing product
-  Future<bool> updateProduct(Product product) async {
+  Future<Product> updateProduct(int id, Map<String, dynamic> productData) async {
     try {
-      final updatedProduct = await ApiService.updateProduct(product);
-      if (updatedProduct != null) {
-        final index = _products.indexWhere((p) => p.id == product.id);
-        if (index != -1) {
-          _products[index] = updatedProduct;
-          notifyListeners();
-          return true;
-        }
+      final product = await _apiService.updateProduct(id, productData);
+      final index = _products.indexWhere((element) => element.id == id);
+      if (index != -1) {
+        _products[index] = product;
+        notifyListeners();
       }
+      return product;
     } catch (error) {
-      _errorMessage = 'Failed to update product: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error updating product: $error');
+      rethrow;
     }
-    return false;
   }
 
-  // Delete a product
-  Future<bool> deleteProduct(int id) async {
+  Future<void> deleteProduct(int id) async {
     try {
-      final success = await ApiService.deleteProduct(id);
-      if (success) {
-        _products.removeWhere((product) => product.id == id);
-        notifyListeners();
-        return true;
-      }
+      await _apiService.deleteProduct(id);
+      _products.removeWhere((element) => element.id == id);
+      notifyListeners();
     } catch (error) {
-      _errorMessage = 'Failed to delete product: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error deleting product: $error');
+      rethrow;
     }
-    return false;
+  }
+
+  Future<void> fetchRecommendations() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _recommendations = await _apiService.getRecommendations();
+    } catch (error) {
+      _errorMessage = error.toString();
+      print('Error fetching recommendations: $error');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

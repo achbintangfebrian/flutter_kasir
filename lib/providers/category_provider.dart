@@ -1,81 +1,72 @@
-import 'package:flutter/material.dart';
-import '../models/category.dart';
+import 'package:flutter/foundation.dart';
+import '../models/product_category.dart';
 import '../services/api_service.dart';
 
 class CategoryProvider with ChangeNotifier {
-  List<Category> _categories = [];
+  List<ProductCategory> _categories = [];
   bool _isLoading = false;
-  String _errorMessage = '';
+  String? _errorMessage;
 
-  List<Category> get categories => _categories;
+  List<ProductCategory> get categories => _categories;
   bool get isLoading => _isLoading;
-  String get errorMessage => _errorMessage;
+  String? get errorMessage => _errorMessage;
 
-  // Fetch all categories
+  ApiService _apiService = ApiService();
+
   Future<void> fetchCategories() async {
     _isLoading = true;
-    _errorMessage = '';
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      _categories = await ApiService.getCategories();
+      _categories = await _apiService.getCategories();
     } catch (error) {
-      _errorMessage = 'Failed to load categories: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error fetching categories: $error');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Add a new category
-  Future<bool> addCategory(Category category) async {
+  Future<ProductCategory> createCategory(Map<String, dynamic> categoryData) async {
     try {
-      final newCategory = await ApiService.createCategory(category);
-      if (newCategory != null) {
-        _categories.add(newCategory);
-        notifyListeners();
-        return true;
-      }
+      final category = await _apiService.createCategory(categoryData);
+      _categories.add(category);
+      notifyListeners();
+      return category;
     } catch (error) {
-      _errorMessage = 'Failed to add category: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error creating category: $error');
+      rethrow;
     }
-    return false;
   }
 
-  // Update an existing category
-  Future<bool> updateCategory(Category category) async {
+  Future<ProductCategory> updateCategory(int id, Map<String, dynamic> categoryData) async {
     try {
-      final updatedCategory = await ApiService.updateCategory(category);
-      if (updatedCategory != null) {
-        final index = _categories.indexWhere((c) => c.id == category.id);
-        if (index != -1) {
-          _categories[index] = updatedCategory;
-          notifyListeners();
-          return true;
-        }
+      final category = await _apiService.updateCategory(id, categoryData);
+      final index = _categories.indexWhere((element) => element.id == id);
+      if (index != -1) {
+        _categories[index] = category;
+        notifyListeners();
       }
+      return category;
     } catch (error) {
-      _errorMessage = 'Failed to update category: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error updating category: $error');
+      rethrow;
     }
-    return false;
   }
 
-  // Delete a category
-  Future<bool> deleteCategory(int id) async {
+  Future<void> deleteCategory(int id) async {
     try {
-      final success = await ApiService.deleteCategory(id);
-      if (success) {
-        _categories.removeWhere((category) => category.id == id);
-        notifyListeners();
-        return true;
-      }
+      await _apiService.deleteCategory(id);
+      _categories.removeWhere((element) => element.id == id);
+      notifyListeners();
     } catch (error) {
-      _errorMessage = 'Failed to delete category: $error';
-      print(_errorMessage);
+      _errorMessage = error.toString();
+      print('Error deleting category: $error');
+      rethrow;
     }
-    return false;
   }
 }
