@@ -4,6 +4,8 @@ import '../providers/category_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/customer_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../providers/auth_provider.dart';
+import 'login_screen.dart';
 import 'category_screen.dart';
 import 'product_screen.dart';
 import 'customer_screen.dart';
@@ -35,11 +37,60 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('HomeScreen: Building widget, selectedIndex: $_selectedIndex');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Smart Cashier'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              print('HomeScreen: Logout button pressed');
+              // Show confirmation dialog
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          print('HomeScreen: Cancel logout');
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          print('HomeScreen: Confirm logout');
+                          Navigator.pop(context);
+                          // Logout and navigate to login screen
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          authProvider.logout();
+                          
+                          if (!mounted) {
+                            print('HomeScreen: Widget unmounted after logout');
+                            return;
+                          }
+                          print('HomeScreen: Navigating to login screen after logout');
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            (route) => false,
+                          );
+                        },
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
@@ -73,30 +124,89 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('DashboardScreen: didChangeDependencies called, isInitialized: $_isInitialized');
+    
+    if (!_isInitialized) {
+      _isInitialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        print('DashboardScreen: addPostFrameCallback executed');
+        try {
+          final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+          final productProvider = Provider.of<ProductProvider>(context, listen: false);
+          final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
+          final transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
+          
+          // Load data when the dashboard is accessed
+          try {
+            if (!categoryProvider.isLoading && categoryProvider.categories.isEmpty) {
+              print('DashboardScreen: Loading categories');
+              await categoryProvider.fetchCategories();
+            }
+          } catch (e) {
+            print('DashboardScreen: Error loading categories: $e');
+          }
+          
+          try {
+            if (!productProvider.isLoading && productProvider.products.isEmpty) {
+              print('DashboardScreen: Loading products');
+              await productProvider.fetchProducts();
+            }
+          } catch (e) {
+            print('DashboardScreen: Error loading products: $e');
+          }
+          
+          try {
+            if (!customerProvider.isLoading && customerProvider.customers.isEmpty) {
+              print('DashboardScreen: Loading customers');
+              await customerProvider.fetchCustomers();
+            }
+          } catch (e) {
+            print('DashboardScreen: Error loading customers: $e');
+          }
+          
+          try {
+            if (!transactionProvider.isLoading && transactionProvider.transactions.isEmpty) {
+              print('DashboardScreen: Loading transactions');
+              await transactionProvider.fetchTransactions();
+            }
+          } catch (e) {
+            print('DashboardScreen: Error loading transactions: $e');
+          }
+          
+          try {
+            if (!productProvider.isLoading && productProvider.recommendations.isEmpty) {
+              print('DashboardScreen: Loading recommendations');
+              await productProvider.fetchRecommendations();
+            }
+          } catch (e) {
+            print('DashboardScreen: Error loading recommendations: $e');
+          }
+        } catch (e, stackTrace) {
+          print('DashboardScreen: Error accessing providers: $e');
+          print('DashboardScreen: Stack trace: $stackTrace');
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print('DashboardScreen: Building widget');
     return Consumer4<CategoryProvider, ProductProvider, CustomerProvider, TransactionProvider>(
       builder: (context, categoryProvider, productProvider, customerProvider, transactionProvider, child) {
-        // Load data when the dashboard is accessed
-        if (!categoryProvider.isLoading && categoryProvider.categories.isEmpty) {
-          categoryProvider.fetchCategories();
-        }
-        if (!productProvider.isLoading && productProvider.products.isEmpty) {
-          productProvider.fetchProducts();
-        }
-        if (!customerProvider.isLoading && customerProvider.customers.isEmpty) {
-          customerProvider.fetchCustomers();
-        }
-        if (!transactionProvider.isLoading && transactionProvider.transactions.isEmpty) {
-          transactionProvider.fetchTransactions();
-        }
-        if (!productProvider.isLoading && productProvider.recommendations.isEmpty) {
-          productProvider.fetchRecommendations();
-        }
-
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(

@@ -142,24 +142,32 @@ class _ProductScreenState extends State<ProductScreen> {
 
     if (_isEditing && _editingProductId != null) {
       productProvider.updateProduct(_editingProductId!, productData).then((_) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Product updated successfully')),
         );
       }).catchError((error) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating product: $error')),
         );
       });
     } else {
       productProvider.createProduct(productData).then((_) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Product added successfully')),
         );
       }).catchError((error) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error adding product: $error')),
         );
@@ -185,10 +193,12 @@ class _ProductScreenState extends State<ProductScreen> {
                 Provider.of<ProductProvider>(context, listen: false)
                     .deleteProduct(product.id!)
                     .then((_) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Product deleted successfully')),
                   );
                 }).catchError((error) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error deleting product: $error')),
                   );

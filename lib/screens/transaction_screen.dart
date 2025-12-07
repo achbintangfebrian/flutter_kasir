@@ -230,12 +230,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
     };
 
     transactionProvider.createTransaction(transactionData).then((_) {
+      if (!mounted) return;
       Navigator.pop(context);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Transaction created successfully')),
       );
     }).catchError((error) {
+      if (!mounted) return;
       Navigator.pop(context);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error creating transaction: $error')),
       );
@@ -261,10 +265,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 Provider.of<TransactionProvider>(context, listen: false)
                     .deleteTransaction(transaction.id!)
                     .then((_) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Transaction deleted successfully')),
                   );
                 }).catchError((error) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error deleting transaction: $error')),
                   );

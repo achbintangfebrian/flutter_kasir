@@ -96,12 +96,16 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
     if (_isEditing && _editingCustomerId != null) {
       customerProvider.updateCustomer(_editingCustomerId!, customerData).then((_) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Customer updated successfully')),
         );
       }).catchError((error) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         print('Error updating customer: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating customer: ${error.toString()}')),
@@ -109,12 +113,16 @@ class _CustomerScreenState extends State<CustomerScreen> {
       });
     } else {
       customerProvider.createCustomer(customerData).then((_) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Customer added successfully')),
         );
       }).catchError((error) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         print('Error adding customer: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error adding customer: ${error.toString()}')),
@@ -141,10 +149,12 @@ class _CustomerScreenState extends State<CustomerScreen> {
                 Provider.of<CustomerProvider>(context, listen: false)
                     .deleteCustomer(customer.id!)
                     .then((_) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Customer deleted successfully')),
                   );
                 }).catchError((error) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error deleting customer: $error')),
                   );

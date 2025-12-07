@@ -23,7 +23,7 @@ class Product extends BaseModel {
     return Product(
       id: json['id'],
       name: json['name'],
-      price: json['price'],
+      price: _parsePrice(json['price']),
       stock: json['stock'],
       categoryId: json['category_id'],
       createdAt: json['created_at'],
@@ -32,6 +32,30 @@ class Product extends BaseModel {
           ? ProductCategory.fromJson(json['category'])
           : null,
     );
+  }
+
+  /// Parse price from various possible JSON formats
+  static int? _parsePrice(dynamic priceValue) {
+    if (priceValue == null) return null;
+    
+    if (priceValue is int) {
+      return priceValue;
+    } else if (priceValue is double) {
+      return priceValue.toInt();
+    } else if (priceValue is String) {
+      // Handle string representations like "5000000.00" or "5000000"
+      try {
+        // Try parsing as double first to handle decimal values
+        final doubleValue = double.tryParse(priceValue);
+        if (doubleValue != null) {
+          return doubleValue.toInt();
+        }
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   @override

@@ -78,24 +78,32 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
     if (_isEditing && _editingCategoryId != null) {
       categoryProvider.updateCategory(_editingCategoryId!, categoryData).then((_) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Category updated successfully')),
         );
       }).catchError((error) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating category: $error')),
         );
       });
     } else {
       categoryProvider.createCategory(categoryData).then((_) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Category added successfully')),
         );
       }).catchError((error) {
+        if (!mounted) return;
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error adding category: $error')),
         );
@@ -121,10 +129,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 Provider.of<CategoryProvider>(context, listen: false)
                     .deleteCategory(category.id!)
                     .then((_) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Category deleted successfully')),
                   );
                 }).catchError((error) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error deleting category: $error')),
                   );
