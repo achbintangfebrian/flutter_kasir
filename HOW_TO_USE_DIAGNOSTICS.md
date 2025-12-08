@@ -23,20 +23,16 @@ If you prefer to run the scripts directly:
 
 1. Open a terminal/command prompt
 2. Navigate to your project directory
-3. Run one of these commands:
+3. Run the command:
 
 ```bash
 # Run the URL finder
 dart find_correct_api_url.dart
-
-# Or run the connection test
-dart test_backend_connection.dart
 ```
 
 ## What the Tools Do
 
 - **find_correct_api_url.dart**: Tests common Laravel API URL patterns to find the correct one
-- **test_backend_connection.dart**: Verifies if your backend is running and accessible
 - **run_diagnostics.bat/.ps1**: Automated wrappers that run the Dart scripts for you
 
 ## Interpreting Results
@@ -44,7 +40,7 @@ dart test_backend_connection.dart
 When the diagnostic tools run, look for:
 - ✅ VALID API ENDPOINT FOUND - This is the URL you should use
 - ❌ Network error - Your backend isn't running
-- ❌ Login endpoint not found - Your Laravel routes aren't configured correctly
+- ❌ API endpoint not found - Your Laravel routes aren't configured correctly
 
 ## After Running Diagnostics
 

@@ -1,167 +1,99 @@
-# API URL Configuration Guide
+# API Configuration Guide
 
-## Understanding the Problem
+This guide will help you configure the API connection for the kasir_bintang application.
 
-Your Flutter app is unable to connect to your Laravel backend because the API URL is incorrectly configured. The current URL `http://localhost:8000/api` will not work when running on Android emulators or physical devices.
+## Current Configuration
 
-## How to Configure Your API URL Correctly
+The application is currently configured to connect to:
+- **Base URL**: `http://localhost:8000/api`
 
-### Step 1: Identify Your Development Setup
+## Common Backend Setup Scenarios
 
-Determine which scenario applies to you:
+### 1. Laravel Development Server
+If you're using Laravel's built-in development server (`php artisan serve`):
+- Base URL: `http://localhost:8000/api`
 
-| Scenario | Description | Correct URL Pattern |
-|----------|-------------|-------------------|
-| Android Emulator | Running app on Android emulator | `http://10.0.2.2/your_backend_folder/api` |
-| Physical Android Device | Running app on actual Android phone | `http://YOUR_PC_LOCAL_IP/your_backend_folder/api` |
-| Browser/Web | Running app in browser | `http://localhost/your_backend_folder/api` or `http://127.0.0.1/your_backend_folder/api` |
+### 2. XAMPP/Laragon/WAMP
+If you're using a local web server with your Laravel project in the web root:
+- Base URL: `http://localhost/your-project-folder/public/api`
 
-### Step 2: Locate Your Backend Folder Path
+### 3. Production Server
+For a deployed Laravel application:
+- Base URL: `https://yourdomain.com/api`
 
-Identify where your Laravel backend is located:
+## Common Connection Issues and Solutions
 
-1. **If using Laravel development server** (`php artisan serve`):
-   - URL: `http://10.0.2.2:8000/api` (for emulator)
+### 1. Localhost Issue
+If you're running the app on a mobile device or different machine than your backend:
+1. Replace `localhost` with your machine's IP address
+2. Ensure your backend server is accessible from the device
 
-2. **If using XAMPP/Laragon**:
-   - Place your Laravel project in the web root
-   - Example: If your project folder is named `kasir_backend`, URL would be:
-     - `http://10.0.2.2/kasir_backend/api` (for emulator)
+### 2. Network Permissions
+Ensure your app has the necessary permissions to access the network:
+- **Android**: Internet permission is already added to AndroidManifest.xml
+- **iOS**: NSAppTransportSecurity is configured to allow HTTP connections
 
-3. **If using a custom setup**:
-   - Determine the correct path to your API endpoints
-
-### Step 3: Update the API Configuration
-
-Open `lib/services/api_service.dart` and update the `baseUrl`:
-
-```dart
-class ApiService {
-  // TODO: Update this URL to match your backend server address
-  
-  // FOR ANDROID EMULATOR: Use http://10.0.2.2/
-  // FOR PHYSICAL ANDROID DEVICE: Use your PC's local IP (e.g., http://192.168.1.50/)
-  // FOR BROWSER/WEB: Use http://localhost/ or http://127.0.0.1/
-  
-  // Examples:
-  // static const String baseUrl = 'http://10.0.2.2:8000/api';           // Laravel dev server + emulator
-  // static const String baseUrl = 'http://10.0.2.2/kasir_backend/api';  // XAMPP/Laragon + emulator
-  // static const String baseUrl = 'http://192.168.1.50:8000/api';       // Laravel dev server + physical device
-  // static const String baseUrl = 'http://localhost:8000/api';          // Browser/web development
-  
-  static const String baseUrl = 'http://10.0.2.2/your_backend_folder/api'; // CHANGE THIS TO MATCH YOUR SETUP
-  // ... rest of the code
-}
-```
-
-### Step 4: Find Your PC's Local IP Address (For Physical Devices)
-
-If you're using a physical Android device:
-
-**Windows:**
-```cmd
-ipconfig
-```
-Look for "IPv4 Address" under your active network connection.
-
-**Mac/Linux:**
+### 3. Backend Server Not Running
+Make sure your Laravel backend is running on port 8000:
 ```bash
-ifconfig
-```
-or
-```bash
-ip addr show
+php artisan serve
 ```
 
-### Step 5: Ensure Both Devices Are on Same Network
+### 4. Incorrect API Endpoint (404 Error)
+If you're getting a 404 error or HTML response instead of JSON:
+1. Verify your Laravel routes are correctly defined
+2. Check that your API prefix is correct (usually `/api`)
+3. Make sure you have the correct URL structure
 
-For physical device testing:
-1. Connect your PC and Android device to the same Wi-Fi network
-2. Make sure your firewall allows connections on the port you're using (usually 80, 8000, etc.)
+### 5. API Route Not Found
+If you're getting "Route not found" errors:
+1. Check your `routes/api.php` file in your Laravel project
+2. Ensure you have defined the required API routes
+3. Verify the route prefixes match your frontend configuration
 
-### Step 6: Test Your Configuration
+## How to Update API Configuration
 
-1. **Start your Laravel backend**:
-   ```bash
-   cd /path/to/your/laravel/project
-   php artisan serve
-   # or if using XAMPP/Laragon, start the Apache server
-   ```
+### Step 1: Find Your Machine's IP Address
+- **Windows**: Open Command Prompt and run `ipconfig`
+- **Mac/Linux**: Open Terminal and run `ifconfig` or `ip addr`
 
-2. **Verify the API endpoint**:
-   Open your browser and visit:
-   - `http://10.0.2.2:8000/api` (if using Laravel dev server)
-   - You should see a JSON response or at least not get a 404 error
+### Step 2: Update the Base URL
+In `lib/services/api_service.dart`, update the baseUrl:
 
-3. **Test in your Flutter app**:
-   Try to login/register in your app
-
-## Common Configuration Examples
-
-### Example 1: Laravel Development Server + Android Emulator
 ```dart
-static const String baseUrl = 'http://10.0.2.2:8000/api';
-```
-
-### Example 2: XAMPP + Android Emulator
-If your Laravel project is in `C:\xampp\htdocs\kasir_backend`:
-```dart
-static const String baseUrl = 'http://10.0.2.2/kasir_backend/api';
-```
-
-### Example 3: Laragon + Android Emulator
-If your Laravel project is in `C:\laragon\www\kasir_backend`:
-```dart
-static const String baseUrl = 'http://10.0.2.2/kasir_backend/api';
-```
-
-### Example 4: Laravel Development Server + Physical Device
-If your PC's IP is 192.168.1.50:
-```dart
-static const String baseUrl = 'http://192.168.1.50:8000/api';
-```
-
-### Example 5: Browser/Web Development
-```dart
+// For local development (same machine)
 static const String baseUrl = 'http://localhost:8000/api';
+
+// For mobile development (different machine)
+static const String baseUrl = 'http://YOUR_MACHINE_IP:8000/api';
+
+// For production
+static const String baseUrl = 'https://yourdomain.com/api';
 ```
 
-## Troubleshooting
+### Step 3: Test the Connection
+1. Make sure your backend is running
+2. Update the URL in the code
+3. Restart the Flutter app
 
-### Issue 1: Still Getting 404 Errors
-1. Double-check your URL path
-2. Ensure your Laravel routes are correctly defined in `routes/api.php`
-3. Make sure your backend server is running
+## Expected API Response Format
 
-### Issue 2: Network Connection Errors
-1. Verify both devices are on the same network
-2. Check firewall settings
-3. Try turning off antivirus temporarily
+The application expects standard JSON responses from the API endpoints.
 
-### Issue 3: CORS Errors
-Add CORS middleware to your Laravel app:
-1. Install the CORS package:
-   ```bash
-   composer require fruitcake/laravel-cors
-   ```
-2. Add to `app/Http/Kernel.php`:
-   ```php
-   protected $middleware = [
-       // ... other middleware
-       \Fruitcake\Cors\HandleCors::class,
-   ];
-   ```
-3. Publish and configure CORS:
-   ```bash
-   php artisan vendor:publish --tag=cors
-   ```
+## Troubleshooting Tips
 
-## Verification Checklist
+1. **Check Network Connectivity**: Ensure your device can reach the backend server
+2. **Verify Endpoints**: Confirm the API endpoints match your backend routes
+3. **Check CORS Settings**: Make sure your Laravel backend allows requests from your app
+4. **Enable Debug Logging**: The app includes extensive logging to help diagnose issues
 
-- [ ] Backend server is running
-- [ ] Correct IP address used for your setup
-- [ ] Proper folder path to your API endpoints
-- [ ] Both devices on same network (for physical device testing)
-- [ ] Firewall allows connections
-- [ ] Laravel routes are properly defined
-- [ ] CORS is configured (if needed)
+## Testing the API Manually
+
+You can test your API endpoints using tools like Postman or curl:
+
+```bash
+# Test categories endpoint
+curl http://localhost:8000/api/categories
+```
+
+If you continue to experience issues, check the console logs for detailed error messages.

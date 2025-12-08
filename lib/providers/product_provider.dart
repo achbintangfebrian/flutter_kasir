@@ -13,7 +13,13 @@ class ProductProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  // Use the singleton instance of ApiService
   ApiService _apiService = ApiService();
+
+  // Allow setting the API service instance (for dependency injection)
+  void setApiService(ApiService apiService) {
+    _apiService = apiService;
+  }
 
   Future<void> fetchProducts() async {
     _isLoading = true;

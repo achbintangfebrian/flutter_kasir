@@ -1,7 +1,7 @@
 # Quick Fix for API Connection Error
 
 ## The Problem
-You're getting a 404 error with HTML content when trying to log in, which means your Flutter app can't connect to your Laravel backend API.
+You're getting a 404 error with HTML content when trying to access API endpoints, which means your Flutter app can't connect to your Laravel backend API.
 
 ## Quick Solutions
 
@@ -22,26 +22,29 @@ Double-click on `run_diagnostics.bat` to automatically find the correct API URL.
    You should see output like: "Laravel development server started: http://127.0.0.1:8000"
 
 2. **Update the API URL in your Flutter app:**
-   Open `lib/services/api_service.dart` and update line 17:
+   Open `lib/services/api_service.dart` and update line 20:
    
    ```dart
    // Try one of these common URLs:
-   static const String baseUrl = 'http://localhost:8000/api';     // Most common
-   // static const String baseUrl = 'http://127.0.0.1:8000/api';   // Alternative
-   // static const String baseUrl = 'http://localhost/api';        // Direct Apache
+   static const String baseUrl = 'http://localhost:8000/api/v1';     // Most common
+   // static const String baseUrl = 'http://127.0.0.1:8000/api/v1';   // Alternative
+   // static const String baseUrl = 'http://localhost/api/v1';        // Direct Apache
    ```
 
 3. **Check your Laravel routes:**
-   Make sure your `routes/api.php` file has these routes:
-   ```php
-   Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
-   Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
-   ```
+   Make sure your `routes/api.php` file has the required routes for the POS system (categories, products, customers, transactions).
 
-## Test Credentials
-Try logging in with these test credentials:
-- Email: admin@gmail.com
-- Password: password123
+## Authentication
+
+The application now requires authentication. You need to:
+
+1. Register an account (first time only) or use existing credentials
+2. Login through the app to get an API token
+3. The token is automatically used for all subsequent API requests
+
+Default test credentials:
+- Email: admin@example.com
+- Password: pw12345
 
 ## Need More Help?
 Run the diagnostic tool by double-clicking `run_diagnostics.bat` for automatic detection of the correct URL.

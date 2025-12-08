@@ -1,27 +1,25 @@
 # API Configuration Guide
 
-This guide will help you configure the API connection for the Smart Cashier application.
+This guide will help you configure the API connection for the kasir_bintang application.
 
 ## Current Configuration
 
 The application is currently configured to connect to:
-- **Base URL**: `http://localhost:8000/api`
-- **Login Endpoint**: `POST /login`
-- **Register Endpoint**: `POST /register`
+- **Base URL**: `http://localhost:8000/api/v1`
 
 ## Common Backend Setup Scenarios
 
 ### 1. Laravel Development Server
 If you're using Laravel's built-in development server (`php artisan serve`):
-- Base URL: `http://localhost:8000/api`
+- Base URL: `http://localhost:8000/api/v1`
 
 ### 2. XAMPP/Laragon/WAMP
 If you're using a local web server with your Laravel project in the web root:
-- Base URL: `http://localhost/your-project-folder/public/api`
+- Base URL: `http://localhost/your-project-folder/public/api/v1`
 
 ### 3. Production Server
 For a deployed Laravel application:
-- Base URL: `https://yourdomain.com/api`
+- Base URL: `https://yourdomain.com/api/v1`
 
 ## Common Connection Issues and Solutions
 
@@ -44,13 +42,13 @@ php artisan serve
 ### 4. Incorrect API Endpoint (404 Error)
 If you're getting a 404 error or HTML response instead of JSON:
 1. Verify your Laravel routes are correctly defined
-2. Check that your API prefix is correct (usually `/api`)
+2. Check that your API prefix is correct (usually `/api/v1`)
 3. Make sure you have the correct URL structure
 
 ### 5. API Route Not Found
 If you're getting "Route not found" errors:
 1. Check your `routes/api.php` file in your Laravel project
-2. Ensure you have defined the login and register routes
+2. Ensure you have defined the required API routes
 3. Verify the route prefixes match your frontend configuration
 
 ## How to Update API Configuration
@@ -78,26 +76,26 @@ static const String baseUrl = 'https://yourdomain.com/api/v1';
 2. Update the URL in the code
 3. Restart the Flutter app
 
+## Authentication
+
+The application now requires authentication to access the API endpoints. You need to:
+
+1. Register an account (first time only)
+2. Login to get an API token
+3. The token is automatically used for all subsequent API requests
+
+Default test credentials:
+- Email: admin@example.com
+- Password: pw12345
+
 ## Expected API Response Format
 
-### Login Endpoint
-**Request:**
+The application expects standard JSON responses from the API endpoints with the following format:
 ```json
 {
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Response:**
-```json
-{
-  "data": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "user@example.com",
-    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
-  }
+  "success": true/false,
+  "message": "Description of the operation result",
+  "data": {} // or []
 }
 ```
 
@@ -113,10 +111,8 @@ static const String baseUrl = 'https://yourdomain.com/api/v1';
 You can test your API endpoints using tools like Postman or curl:
 
 ```bash
-# Test login endpoint
-curl -X POST http://localhost:8000/api/v1/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password123"}'
+# Test categories endpoint
+curl http://localhost:8000/api/v1/categories
 ```
 
 If you continue to experience issues, check the console logs for detailed error messages.

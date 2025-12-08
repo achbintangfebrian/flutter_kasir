@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
+import '../providers/category_provider.dart';
+import '../providers/product_provider.dart';
+import '../providers/customer_provider.dart';
+import '../providers/transaction_provider.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 
@@ -15,7 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -24,91 +29,99 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
-  }
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
       
-      try {
-        print('Attempting login with email: ${_emailController.text.trim()}');
-        await authProvider.login(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
-        
-        if (!mounted) {
-          print('Widget unmounted after login');
-          return;
-        }
-        
-        print('Login successful, navigating to home screen');
-        // Navigate to home screen after successful login
+      final credentials = {
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text,
+      };
+
+      final authData = await apiService.login(credentials);
+      apiService.setApiToken(authData['api_token']);
+
+      // Preload data after successful login
+      await _preloadData();
+
+      // Navigate to home screen
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
-      } catch (e, stackTrace) {
-        print('Login error: ${e.toString()}');
-        print('Stack trace: $stackTrace');
-        if (!mounted) {
-          print('Widget unmounted after error');
-          return;
-        }
-        
-        // Show user-friendly error message
-        String errorMessage = 'Login failed. Please try again.';
-        if (e.toString().contains('Network')) {
-          errorMessage = 'Network error. Please check your connection.';
-        } else if (e.toString().contains('Invalid email or password')) {
-          errorMessage = 'Invalid email or password.';
-        } else if (e.toString().contains('API endpoint not found') || e.toString().contains('Invalid API endpoint')) {
-          errorMessage = 'API configuration error. Please check your backend URL settings.';
-        } else if (e.toString().contains('timeout')) {
-          errorMessage = 'Request timeout. Please try again.';
-        } else if (e.toString().isNotEmpty) {
-          errorMessage = e.toString();
-          // Remove 'Exception:' prefix if present
-          if (errorMessage.startsWith('Exception:')) {
-            errorMessage = errorMessage.substring(11).trim();
-          }
-        }
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
+    } catch (error) {
+      setState(() {
+        _errorMessage = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _preloadData() async {
+    try {
+      // Preload all necessary data
+      await Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+      await Provider.of<ProductProvider>(context, listen: false).fetchProducts();
+      await Provider.of<CustomerProvider>(context, listen: false).fetchCustomers();
+      await Provider.of<TransactionProvider>(context, listen: false).fetchTransactions();
+      await Provider.of<ProductProvider>(context, listen: false).fetchRecommendations();
+    } catch (error) {
+      print('Error preloading data: $error');
+      // Don't block the login even if preloading fails
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    print('LoginScreen: Building widget');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.person,
-                size: 100,
-                color: Colors.blue,
+              const Text(
+                'Smart Cashier',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
+              if (_errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -126,23 +139,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Password',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword 
-                          ? Icons.visibility_off 
-                          : Icons.visibility,
-                    ),
-                    onPressed: _togglePasswordVisibility,
-                  ),
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
                 ),
+                obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your password';
@@ -153,41 +158,45 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _handleLogin,
+                  onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 18),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Login',
+                          style: TextStyle(fontSize: 16),
+                        ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Don't have an account? "),
-                  TextButton(
-                    onPressed: () {
-                      print('LoginScreen: Navigate to RegisterScreen');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text('Register'),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                  );
+                },
+                child: const Text('Don\'t have an account? Register'),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Default credentials:\nEmail: admin@example.com\nPassword: pw12345',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),

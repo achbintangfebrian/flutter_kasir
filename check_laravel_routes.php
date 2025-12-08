@@ -25,13 +25,9 @@ if (!file_exists('routes/api.php')) {
 
 echo "✅ Found routes/api.php file\n";
 
-// Read the routes file
-$routesContent = file_get_contents('routes/api.php');
-
-// Check for required routes
+// Check for required routes (excluding login/register as they are not used)
 $requiredRoutes = [
-    '/login' => 'POST',
-    '/register' => 'POST'
+    // Login and register routes have been removed as they are not used in the application
 ];
 
 $missingRoutes = [];
@@ -49,17 +45,12 @@ foreach ($requiredRoutes as $route => $method) {
 
 if (empty($missingRoutes)) {
     echo "\n🎉 All required API routes are defined!\n";
-    echo "Your Laravel backend should work with the Smart Cashier app.\n";
+    echo "Your Laravel backend should work with the kasir_bintang app.\n";
 } else {
     echo "\n⚠️  Missing routes detected:\n";
     foreach ($missingRoutes as $route) {
         echo "   - {$route}\n";
     }
-    
-    echo "\nTo fix this, add the following to your routes/api.php file:\n";
-    echo "\n// Authentication Routes\n";
-    echo "Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);\n";
-    echo "Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);\n";
 }
 
 echo "\n=== Route Check Complete ===\n";

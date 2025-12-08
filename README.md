@@ -4,7 +4,6 @@ A Flutter-based Point of Sale application with AI-powered product recommendation
 
 ## Features
 
-- User authentication (Login/Register)
 - Product management
 - Customer management
 - Transaction processing
@@ -56,35 +55,25 @@ Common configurations:
 
 ## Troubleshooting
 
-### Login/Register Not Working
+### API Connection Issues
 
-If your login and register functionality is not working:
+If you're having trouble connecting to the API:
 
-1. **See the detailed guide**: Check `FIX_LOGIN_FUNCTIONALITY.md` for comprehensive instructions
-
-2. **Use the Automated Diagnostic Tool (Recommended)**
+1. **Use the Automated Diagnostic Tool (Recommended)**
    - Double-click on `run_diagnostics.bat` in your project folder
    - The tool will automatically find the correct API URL for you
    - See `HOW_TO_USE_DIAGNOSTICS.md` for detailed instructions
 
-3. **Check if your backend is running**
+2. **Check if your backend is running**
    - Run `php artisan serve` in your Laravel project directory
    - You should see output like: "Laravel development server started: http://127.0.0.1:8000"
 
-4. **Verify your API URL**
+3. **Verify your API URL**
    - Open `lib/services/api_service.dart`
    - Check that the `baseUrl` matches your actual backend URL
    - Common URLs:
      - Laravel development server: `http://localhost:8000/api`
      - XAMPP/Laragon: `http://localhost/your-project/public/api`
-
-5. **Check your Laravel routes**
-   - Open `routes/api.php` in your Laravel project
-   - Make sure you have defined routes for `/auth/login` and `/auth/register`
-
-6. **Run the URL finder tool**
-   - Execute: `dart find_working_api_url.dart`
-   - This will test common URLs and tell you which one works
 
 ### API Connection Error (404 HTML Response)
 
@@ -108,7 +97,7 @@ If you see HTML content or "404 Not Found" in your error messages instead of JSO
 
 4. **Check your Laravel routes**
    - Open `routes/api.php` in your Laravel project
-   - Make sure you have defined routes for `/login` and `/register`
+   - Make sure you have defined the required API routes
 
 ### Other Common Issues
 
